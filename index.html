@@ -4,7 +4,584 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UW–Madison Cyber Escape Room</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --uw-red: #c5050c;
+            --uw-white: #ffffff;
+            --uw-black: #000000;
+            --lava-orange: #ff6b35;
+            --lava-red: #d41e3a;
+            --lava-dark: #8b0000;
+            --accent-yellow: #ffed4e;
+            --dark-gray: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            background: #000;
+        }
+
+        .lava-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
+            z-index: -2;
+        }
+
+        @keyframes lavaFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .lava-flow {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 200px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                #ff4500 25%,
+                #ff6b35 50%,
+                #ff4500 75%,
+                transparent 100%);
+            background-size: 200% 100%;
+            animation: lavaFlow 8s ease-in-out infinite;
+            filter: blur(20px);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        .lava-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .lava-particles::before,
+        .lava-particles::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffaa00 0%, #ff6b35 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px #ff4500;
+            animation: particleFloat 4s infinite;
+            bottom: 0;
+        }
+
+        .lava-particles::before {
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .lava-particles::after {
+            left: 80%;
+            animation-delay: 2s;
+        }
+
+        @keyframes lavaRise {
+            0% { height: 0; }
+            100% { height: 100%; }
+        }
+
+        .lava-rise {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: linear-gradient(to top,
+                rgba(255, 69, 0, 0.8) 0%,
+                rgba(255, 107, 53, 0.6) 50%,
+                transparent 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--uw-red) 0%, #8b0000 100%);
+            padding: 20px;
+            color: var(--uw-white);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border-bottom: 3px solid var(--accent-yellow);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .uw-logo {
+            text-align: left;
+        }
+
+        .uw-logo h1 {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .uw-logo p {
+            font-size: 14px;
+            opacity: 0.95;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid var(--accent-yellow);
+            backdrop-filter: blur(10px);
+        }
+
+        .timer-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer {
+            font-size: 32px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px var(--lava-orange);
+        }
+
+        .main-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            height: calc(100vh - 180px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-content {
+            background: rgba(30, 30, 30, 0.95);
+            padding: 60px 40px;
+            border-radius: 15px;
+            border: 3px solid var(--uw-red);
+            text-align: center;
+            color: var(--uw-white);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7),
+                        0 0 30px rgba(255, 69, 0, 0.3);
+        }
+
+        .welcome-content h2 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: var(--accent-yellow);
+            text-shadow: 0 0 20px var(--lava-orange);
+        }
+
+        .welcome-content p {
+            font-size: 18px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .game-content {
+            width: 100%;
+        }
+
+        .progress-section {
+            margin-bottom: 30px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: var(--accent-yellow);
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--uw-red);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--lava-orange) 0%, var(--accent-yellow) 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--lava-orange);
+        }
+
+        .question-card {
+            background: rgba(30, 30, 30, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            border: 3px solid var(--uw-red);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7),
+                        0 0 30px rgba(255, 69, 0, 0.3);
+            color: var(--uw-white);
+        }
+
+        .question-number {
+            font-size: 14px;
+            color: var(--accent-yellow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .question-card h3 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            color: var(--uw-white);
+        }
+
+        .tip-section {
+            margin-bottom: 30px;
+        }
+
+        .btn-tip {
+            background: rgba(255, 173, 78, 0.2);
+            border: 2px solid #ffad4e;
+            color: var(--accent-yellow);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-tip:hover {
+            background: rgba(255, 173, 78, 0.4);
+            box-shadow: 0 0 15px #ffad4e;
+        }
+
+        .tip-box {
+            background: rgba(255, 173, 78, 0.1);
+            border-left: 4px solid var(--accent-yellow);
+            padding: 15px 20px;
+            margin-top: 15px;
+            border-radius: 5px;
+            color: #ffe4b5;
+            font-size: 14px;
+            line-height: 1.6;
+            animation: slideDown 0.3s ease;
+        }
+
+        .tip-box.hidden {
+            display: none;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .options-container {
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(60, 60, 60, 0.8);
+            border: 2px solid rgba(197, 5, 12, 0.5);
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--uw-white);
+            font-size: 16px;
+            text-align: left;
+        }
+
+        .option:hover:not(.disabled) {
+            background: rgba(60, 60, 60, 1);
+            border-color: var(--uw-red);
+            transform: translateX(10px);
+            box-shadow: 0 0 15px rgba(197, 5, 12, 0.5);
+        }
+
+        .option.correct {
+            background: rgba(34, 139, 34, 0.3);
+            border-color: #22dd22;
+            box-shadow: 0 0 20px rgba(34, 222, 34, 0.5);
+        }
+
+        .option.incorrect {
+            background: rgba(220, 20, 60, 0.3);
+            border-color: #ff4444;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .feedback-box {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .feedback-box.hidden {
+            display: none;
+        }
+
+        .feedback-box.correct {
+            background: rgba(34, 139, 34, 0.2);
+            border: 2px solid #22dd22;
+            color: #90ee90;
+        }
+
+        .feedback-box.incorrect {
+            background: rgba(220, 20, 60, 0.2);
+            border: 2px solid #ff4444;
+            color: #ff9999;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--uw-red) 0%, var(--lava-red) 100%);
+            color: var(--uw-white);
+            border: 2px solid var(--accent-yellow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(197, 5, 12, 0.8);
+        }
+
+        .btn-secondary {
+            background: rgba(100, 100, 100, 0.7);
+            color: var(--uw-white);
+            border: 2px solid rgba(197, 5, 12, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(100, 100, 100, 0.9);
+            border-color: var(--uw-red);
+        }
+
+        .completion-content {
+            background: rgba(30, 30, 30, 0.95);
+            padding: 60px 40px;
+            border-radius: 15px;
+            border: 3px solid var(--uw-red);
+            text-align: center;
+            color: var(--uw-white);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7),
+                        0 0 30px rgba(255, 69, 0, 0.3);
+        }
+
+        .completion-content h2 {
+            font-size: 48px;
+            margin-bottom: 40px;
+            color: var(--accent-yellow);
+            text-shadow: 0 0 20px var(--lava-orange);
+        }
+
+        .stats-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid var(--uw-red);
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            color: var(--accent-yellow);
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--lava-orange);
+        }
+
+        .completion-message {
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+            }
+
+            .question-card {
+                padding: 30px 20px;
+            }
+
+            .question-card h3 {
+                font-size: 22px;
+            }
+
+            .welcome-content h2 {
+                font-size: 36px;
+            }
+
+            .welcome-content {
+                padding: 40px 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .stats-box {
+                grid-template-columns: 1fr;
+            }
+
+            .timer {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .uw-logo h1 {
+                font-size: 20px;
+            }
+
+            .timer-container {
+                padding: 10px 15px;
+            }
+
+            .question-card h3 {
+                font-size: 18px;
+            }
+
+            .completion-content h2 {
+                font-size: 32px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="lava-background">
@@ -12,7 +589,6 @@
         <div class="lava-particles"></div>
     </div>
 
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
             <div class="uw-logo">
@@ -26,23 +602,19 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="main-container">
-        <!-- Welcome Screen -->
         <div id="welcomeScreen" class="screen active">
             <div class="welcome-content">
                 <h2>🔥 Escape the Lava Chambers 🔥</h2>
                 <p>Welcome to the UW–Madison Cyber Escape Room!</p>
                 <p>You have 12 cybersecurity challenges to solve before the lava rises.</p>
                 <p>Answer correctly to progress, use hints wisely, and beat the clock!</p>
-                <button class="btn btn-primary" onclick="startGame()">Start Your Escape</button>
+                <button id="startButton" class="btn btn-primary">Start Your Escape</button>
             </div>
         </div>
 
-        <!-- Game Screen -->
         <div id="gameScreen" class="screen">
             <div class="game-content">
-                <!-- Progress Bar -->
                 <div class="progress-section">
                     <div class="progress-label">
                         <span>Question <span id="currentQuestion">1</span> of 12</span>
@@ -53,39 +625,31 @@
                     </div>
                 </div>
 
-                <!-- Question Card -->
                 <div class="question-card">
                     <div class="question-number">Challenge <span id="questionNum">1</span></div>
                     <h3 id="questionText">Loading question...</h3>
-                    
-                    <!-- Tip Section -->
+
                     <div class="tip-section">
-                        <button class="btn btn-tip" id="tipBtn" onclick="toggleTip()">💡 Show Tip</button>
+                        <button class="btn btn-tip" id="tipBtn">💡 Show Tip</button>
                         <div id="tipBox" class="tip-box hidden">
                             <p id="tipText"></p>
                         </div>
                     </div>
 
-                    <!-- Answer Options -->
-                    <div class="options-container" id="optionsContainer">
-                        <!-- Options will be generated by JavaScript -->
-                    </div>
+                    <div class="options-container" id="optionsContainer"></div>
 
-                    <!-- Feedback -->
                     <div id="feedbackBox" class="feedback-box hidden">
                         <p id="feedbackText"></p>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="button-group">
-                        <button class="btn btn-secondary" onclick="skipQuestion()">Skip</button>
-                        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Next Challenge</button>
+                        <button id="skipBtn" class="btn btn-secondary">Skip</button>
+                        <button id="nextBtn" class="btn btn-primary" style="display:none;">Next Challenge</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Completion Screen -->
         <div id="completionScreen" class="screen">
             <div class="completion-content">
                 <h2>🎉 You've Escaped! 🎉</h2>
@@ -104,14 +668,327 @@
                     </div>
                 </div>
                 <p class="completion-message">Congratulations! You've completed the UW–Madison Cybersecurity Challenge.</p>
-                <button class="btn btn-primary" onclick="resetGame()">Try Again</button>
+                <button id="restartBtn" class="btn btn-primary">Try Again</button>
             </div>
         </div>
     </main>
 
-    <!-- Lava Rising Animation -->
     <div class="lava-rise" id="lavaRise"></div>
 
-    <script src="script.js"></script>
+    <script>
+        const questions = [
+            {
+                question: "What is the most common way attackers try to steal credentials?",
+                options: [
+                    "Phishing emails disguised as trusted sources",
+                    "Resetting the router",
+                    "Updating antivirus software",
+                    "Using a stronger password"
+                ],
+                correct: 0,
+                tip: "Think about fake messages that trick users into clicking links or revealing info."
+            },
+            {
+                question: "Which password is the strongest choice?",
+                options: [
+                    "Password123",
+                    "Bucky!2026#Pass",
+                    "MyNameIsBucky",
+                    "12345678"
+                ],
+                correct: 1,
+                tip: "Longer passwords with mixed characters are much harder to guess."
+            },
+            {
+                question: "What should you do if you get a suspicious email asking for personal information?",
+                options: [
+                    "Reply immediately",
+                    "Click the attachment to verify",
+                    "Delete it or report it and do not interact",
+                    "Forward it to everyone in your contacts"
+                ],
+                correct: 2,
+                tip: "When in doubt, do not click or reply. Report it instead."
+            },
+            {
+                question: "What does 2FA add to account security?",
+                options: [
+                    "A second layer of verification beyond a password",
+                    "A way to erase the password",
+                    "A method to bypass malware",
+                    "A password reset reminder"
+                ],
+                correct: 0,
+                tip: "2FA usually requires something you know plus something you have."
+            },
+            {
+                question: "Which action is riskiest on public Wi‑Fi?",
+                options: [
+                    "Checking email with a VPN",
+                    "Logging into sensitive accounts without protection",
+                    "Downloading a trusted app",
+                    "Enabling VPN on your phone"
+                ],
+                correct: 1,
+                tip: "Public networks are often unsecured. Use a VPN before accessing sensitive data."
+            },
+            {
+                question: "What is malware?",
+                options: [
+                    "A type of secure browser plugin",
+                    "Software designed to harm or exploit devices",
+                    "A backup system",
+                    "A password manager"
+                ],
+                correct: 1,
+                tip: "Malware includes viruses, ransomware, spyware, and worms."
+            },
+            {
+                question: "What is the best step when software is outdated?",
+                options: [
+                    "Ignore it until it breaks",
+                    "Update it to the latest version",
+                    "Keep using it as-is",
+                    "Disable the app completely"
+                ],
+                correct: 1,
+                tip: "Updates often contain patches for vulnerabilities and security flaws."
+            },
+            {
+                question: "What is social engineering?",
+                options: [
+                    "Manipulating people into revealing confidential information",
+                    "Creating a friendly user profile",
+                    "Using a firewall properly",
+                    "Running a malware scan"
+                ],
+                correct: 0,
+                tip: "It targets human behavior, not just computer systems."
+            },
+            {
+                question: "Which is the best policy for passwords at work?",
+                options: [
+                    "Share them with your team",
+                    "Write them on paper and leave them by the desk",
+                    "Use a password manager and never share them",
+                    "Use the same password everywhere"
+                ],
+                correct: 2,
+                tip: "Password sharing should be avoided; use secure credential systems instead."
+            },
+            {
+                question: "What does encryption do?",
+                options: [
+                    "Makes files unreadable without the proper key",
+                    "Deletes backups automatically",
+                    "Slows down your network",
+                    "Disables all security alerts"
+                ],
+                correct: 0,
+                tip: "Encryption protects data by turning it into unreadable code."
+            },
+            {
+                question: "Before opening an email attachment from an unknown sender, what is best practice?",
+                options: [
+                    "Open it immediately",
+                    "Scan it with antivirus software or avoid it",
+                    "Forward it to all coworkers",
+                    "Save it to your desktop and then open"
+                ],
+                correct: 1,
+                tip: "Unknown attachments may contain malware or malicious scripts."
+            },
+            {
+                question: "What is ransomware?",
+                options: [
+                    "A software that deletes your files harmlessly",
+                    "Malware that encrypts files and demands payment",
+                    "A program that increases Wi‑Fi speed",
+                    "A backup utility for data restoration"
+                ],
+                correct: 1,
+                tip: "Ransomware locks systems or files until a ransom is paid."
+            }
+        ];
+
+        const state = {
+            currentIndex: 0,
+            score: 0,
+            elapsed: 0,
+            hintCount: 0,
+            tipVisible: false,
+            timerId: null,
+            answered: false
+        };
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach((screen) => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
+        }
+
+        function formatTime(totalSeconds) {
+            const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
+
+        function updateTimer() {
+            document.getElementById('timer').textContent = formatTime(state.elapsed);
+        }
+
+        function startTimer() {
+            clearInterval(state.timerId);
+            state.timerId = setInterval(() => {
+                state.elapsed += 1;
+                updateTimer();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(state.timerId);
+        }
+
+        function updateProgress() {
+            const progress = (state.currentIndex / questions.length) * 100;
+            document.getElementById('currentQuestion').textContent = state.currentIndex + 1;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressPercent').textContent = `${Math.round(progress)}%`;
+        }
+
+        function renderQuestion() {
+            const q = questions[state.currentIndex];
+            const optionsContainer = document.getElementById('optionsContainer');
+            const tipBox = document.getElementById('tipBox');
+            const tipButton = document.getElementById('tipBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const feedbackBox = document.getElementById('feedbackBox');
+
+            state.answered = false;
+            state.tipVisible = false;
+
+            document.getElementById('questionText').textContent = q.question;
+            document.getElementById('questionNum').textContent = state.currentIndex + 1;
+            document.getElementById('tipText').textContent = q.tip;
+            feedbackBox.classList.add('hidden');
+            nextBtn.style.display = 'none';
+            tipBox.classList.add('hidden');
+            tipButton.textContent = '💡 Show Tip';
+
+            optionsContainer.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.type = 'button';
+                btn.textContent = option;
+                btn.addEventListener('click', () => handleAnswer(index));
+                optionsContainer.appendChild(btn);
+            });
+
+            updateProgress();
+        }
+
+        function handleAnswer(selected) {
+            if (state.answered) return;
+            state.answered = true;
+
+            const q = questions[state.currentIndex];
+            const buttons = document.querySelectorAll('.option');
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackText = document.getElementById('feedbackText');
+            const nextBtn = document.getElementById('nextBtn');
+
+            buttons.forEach((button, index) => {
+                button.disabled = true;
+                button.classList.add('disabled');
+
+                if (index === q.correct) {
+                    button.classList.add('correct');
+                } else if (index === selected && index !== q.correct) {
+                    button.classList.add('incorrect');
+                }
+            });
+
+            if (selected === q.correct) {
+                state.score += 1;
+                feedbackText.textContent = '✓ Correct! You unlocked the next chamber.';
+                feedbackBox.classList.remove('incorrect');
+                feedbackBox.classList.add('correct');
+            } else {
+                feedbackText.textContent = `✗ Incorrect. The correct answer was: ${q.options[q.correct]}`;
+                feedbackBox.classList.remove('correct');
+                feedbackBox.classList.add('incorrect');
+            }
+
+            feedbackBox.classList.remove('hidden');
+            nextBtn.style.display = 'inline-block';
+        }
+
+        function toggleTip() {
+            const tipBox = document.getElementById('tipBox');
+            const tipButton = document.getElementById('tipBtn');
+
+            if (!state.tipVisible) {
+                tipBox.classList.remove('hidden');
+                tipButton.textContent = '💡 Hide Tip';
+                state.tipVisible = true;
+                state.hintCount += 1;
+            } else {
+                tipBox.classList.add('hidden');
+                tipButton.textContent = '💡 Show Tip';
+                state.tipVisible = false;
+            }
+        }
+
+        function skipQuestion() {
+            if (!state.answered) {
+                advanceQuestion();
+            }
+        }
+
+        function advanceQuestion() {
+            state.currentIndex += 1;
+            if (state.currentIndex >= questions.length) {
+                completeGame();
+            } else {
+                renderQuestion();
+            }
+        }
+
+        function completeGame() {
+            stopTimer();
+            document.getElementById('finalTime').textContent = formatTime(state.elapsed);
+            document.getElementById('finalScore').textContent = `${state.score} / ${questions.length}`;
+            document.getElementById('hintsUsed').textContent = state.hintCount;
+            switchScreen('completionScreen');
+        }
+
+        function startGame() {
+            state.currentIndex = 0;
+            state.score = 0;
+            state.elapsed = 0;
+            state.hintCount = 0;
+            state.tipVisible = false;
+            state.answered = false;
+            updateTimer();
+            renderQuestion();
+            startTimer();
+            switchScreen('gameScreen');
+        }
+
+        function resetGame() {
+            stopTimer();
+            switchScreen('welcomeScreen');
+        }
+
+        document.getElementById('startButton').addEventListener('click', startGame);
+        document.getElementById('nextBtn').addEventListener('click', advanceQuestion);
+        document.getElementById('tipBtn').addEventListener('click', toggleTip);
+        document.getElementById('skipBtn').addEventListener('click', skipQuestion);
+        document.getElementById('restartBtn').addEventListener('click', resetGame);
+
+        updateTimer();
+    </script>
 </body>
 </html>
