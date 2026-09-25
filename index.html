@@ -127,6 +127,65 @@
             pointer-events: none;
         }
 
+        /* Badger character animation */
+        @keyframes badgerHop {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes badgerBounce {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(10px) rotate(5deg); }
+        }
+
+        .badger-mascot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 60px;
+            animation: badgerBounce 3s ease-in-out infinite;
+            z-index: 100;
+            cursor: pointer;
+            filter: drop-shadow(0 0 10px rgba(255, 237, 78, 0.5));
+        }
+
+        .badger-mascot:hover {
+            animation: badgerHop 0.6s ease-in-out infinite;
+        }
+
+        .badger-speech {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: var(--uw-red);
+            color: var(--uw-white);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent-yellow);
+            font-size: 14px;
+            font-weight: bold;
+            max-width: 200px;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            animation: slideIn 0.5s ease;
+            display: none;
+        }
+
+        .badger-speech.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .header {
             background: linear-gradient(135deg, var(--uw-red) 0%, #8b0000 100%);
             padding: 20px;
@@ -166,12 +225,14 @@
             border-radius: 10px;
             border: 2px solid var(--accent-yellow);
             backdrop-filter: blur(10px);
+            display: flex;
+            gap: 15px;
+            align-items: center;
         }
 
         .timer-label {
             font-size: 12px;
             opacity: 0.9;
-            margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -182,6 +243,22 @@
             font-family: 'Courier New', monospace;
             color: var(--accent-yellow);
             text-shadow: 0 0 10px var(--lava-orange);
+        }
+
+        .sound-toggle {
+            background: rgba(255, 173, 78, 0.3);
+            border: 2px solid var(--accent-yellow);
+            color: var(--accent-yellow);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(255, 173, 78, 0.5);
+            box-shadow: 0 0 10px var(--accent-yellow);
         }
 
         .main-container {
@@ -228,16 +305,29 @@
                         0 0 30px rgba(255, 69, 0, 0.3);
         }
 
+        .welcome-mascot {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: badgerHop 1s ease-in-out infinite;
+        }
+
         .welcome-content h2 {
             font-size: 48px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             color: var(--accent-yellow);
             text-shadow: 0 0 20px var(--lava-orange);
         }
 
+        .welcome-subtitle {
+            font-size: 20px;
+            color: var(--accent-yellow);
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
         .welcome-content p {
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 16px;
+            margin-bottom: 15px;
             line-height: 1.6;
             opacity: 0.9;
         }
@@ -475,9 +565,15 @@
                         0 0 30px rgba(255, 69, 0, 0.3);
         }
 
+        .completion-mascot {
+            font-size: 100px;
+            margin-bottom: 20px;
+            animation: badgerHop 0.8s ease-in-out infinite;
+        }
+
         .completion-content h2 {
             font-size: 48px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             color: var(--accent-yellow);
             text-shadow: 0 0 20px var(--lava-orange);
         }
@@ -558,6 +654,12 @@
             .timer {
                 font-size: 24px;
             }
+
+            .badger-mascot {
+                font-size: 48px;
+                bottom: 10px;
+                right: 10px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -567,6 +669,8 @@
 
             .timer-container {
                 padding: 10px 15px;
+                flex-direction: column;
+                gap: 5px;
             }
 
             .question-card h3 {
@@ -589,6 +693,9 @@
         <div class="lava-particles"></div>
     </div>
 
+    <div class="badger-mascot" id="badgerMascot" onclick="badgerTalk()">🦡</div>
+    <div class="badger-speech" id="badgerSpeech"></div>
+
     <header class="header">
         <div class="header-content">
             <div class="uw-logo">
@@ -596,8 +703,11 @@
                 <p>Cybersecurity Awareness Month</p>
             </div>
             <div class="timer-container">
-                <div class="timer-label">Time Elapsed</div>
-                <div class="timer" id="timer">00:00</div>
+                <div>
+                    <div class="timer-label">Time Elapsed</div>
+                    <div class="timer" id="timer">00:00</div>
+                </div>
+                <button class="sound-toggle" id="soundToggle" title="Toggle sound">🔊</button>
             </div>
         </div>
     </header>
@@ -605,7 +715,9 @@
     <main class="main-container">
         <div id="welcomeScreen" class="screen active">
             <div class="welcome-content">
+                <div class="welcome-mascot">🦡</div>
                 <h2>🔥 Escape the Lava Chambers 🔥</h2>
+                <p class="welcome-subtitle">Help Bucky Badger Escape!</p>
                 <p>Welcome to the UW–Madison Cyber Escape Room!</p>
                 <p>You have 12 cybersecurity challenges to solve before the lava rises.</p>
                 <p>Answer correctly to progress, use hints wisely, and beat the clock!</p>
@@ -652,6 +764,7 @@
 
         <div id="completionScreen" class="screen">
             <div class="completion-content">
+                <div class="completion-mascot">🦡</div>
                 <h2>🎉 You've Escaped! 🎉</h2>
                 <div class="stats-box">
                     <div class="stat-item">
@@ -667,7 +780,7 @@
                         <span class="stat-value" id="hintsUsed">0</span>
                     </div>
                 </div>
-                <p class="completion-message">Congratulations! You've completed the UW–Madison Cybersecurity Challenge.</p>
+                <p class="completion-message">Congratulations! You've completed the UW–Madison Cybersecurity Challenge and saved Bucky Badger!</p>
                 <button id="restartBtn" class="btn btn-primary">Try Again</button>
             </div>
         </div>
@@ -676,6 +789,89 @@
     <div class="lava-rise" id="lavaRise"></div>
 
     <script>
+        // Sound effects using Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+
+        function playSound(frequency, duration, type = 'sine') {
+            if (!soundEnabled) return;
+
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (e) {
+                console.log('Audio not available');
+            }
+        }
+
+        function playCorrectSound() {
+            playSound(523.25, 0.1); // C5
+            setTimeout(() => playSound(659.25, 0.2), 100); // E5
+            setTimeout(() => playSound(783.99, 0.3), 200); // G5
+        }
+
+        function playIncorrectSound() {
+            playSound(200, 0.3, 'square');
+            setTimeout(() => playSound(150, 0.3, 'square'), 150);
+        }
+
+        function playClickSound() {
+            playSound(400, 0.05);
+        }
+
+        function playWinSound() {
+            const frequencies = [523.25, 659.25, 783.99, 1046.5];
+            frequencies.forEach((freq, i) => {
+                setTimeout(() => playSound(freq, 0.2), i * 100);
+            });
+        }
+
+        // Badger character interactions
+        const badgerMessages = [
+            "You've got this! Stay sharp! 🦡",
+            "Remember: Never click suspicious links!",
+            "Bucky believes in you! 💪",
+            "Use that hint wisely, friend!",
+            "2FA saves lives!",
+            "Strong passwords = peace of mind",
+            "Report phishing attacks!",
+            "Keep calm and escape the lava! 🔥"
+        ];
+
+        let badgerMessageIndex = 0;
+
+        function badgerTalk() {
+            const speech = document.getElementById('badgerSpeech');
+            speech.textContent = badgerMessages[badgerMessageIndex];
+            speech.classList.add('active');
+            playClickSound();
+
+            setTimeout(() => {
+                speech.classList.remove('active');
+                badgerMessageIndex = (badgerMessageIndex + 1) % badgerMessages.length;
+            }, 4000);
+        }
+
+        // Sound toggle
+        document.getElementById('soundToggle').addEventListener('click', function() {
+            soundEnabled = !soundEnabled;
+            this.textContent = soundEnabled ? '🔊' : '🔇';
+            playClickSound();
+        });
+
+        // Game logic
         const questions = [
             {
                 question: "What is the most common way attackers try to steal credentials?",
@@ -915,10 +1111,12 @@
                 feedbackText.textContent = '✓ Correct! You unlocked the next chamber.';
                 feedbackBox.classList.remove('incorrect');
                 feedbackBox.classList.add('correct');
+                playCorrectSound();
             } else {
                 feedbackText.textContent = `✗ Incorrect. The correct answer was: ${q.options[q.correct]}`;
                 feedbackBox.classList.remove('correct');
                 feedbackBox.classList.add('incorrect');
+                playIncorrectSound();
             }
 
             feedbackBox.classList.remove('hidden');
@@ -934,6 +1132,7 @@
                 tipButton.textContent = '💡 Hide Tip';
                 state.tipVisible = true;
                 state.hintCount += 1;
+                playClickSound();
             } else {
                 tipBox.classList.add('hidden');
                 tipButton.textContent = '💡 Show Tip';
@@ -943,6 +1142,7 @@
 
         function skipQuestion() {
             if (!state.answered) {
+                playClickSound();
                 advanceQuestion();
             }
         }
@@ -961,6 +1161,7 @@
             document.getElementById('finalTime').textContent = formatTime(state.elapsed);
             document.getElementById('finalScore').textContent = `${state.score} / ${questions.length}`;
             document.getElementById('hintsUsed').textContent = state.hintCount;
+            playWinSound();
             switchScreen('completionScreen');
         }
 
@@ -974,11 +1175,13 @@
             updateTimer();
             renderQuestion();
             startTimer();
+            playClickSound();
             switchScreen('gameScreen');
         }
 
         function resetGame() {
             stopTimer();
+            playClickSound();
             switchScreen('welcomeScreen');
         }
 
@@ -989,6 +1192,9 @@
         document.getElementById('restartBtn').addEventListener('click', resetGame);
 
         updateTimer();
+
+        // Initial badger greeting
+        setTimeout(() => badgerTalk(), 1000);
     </script>
 </body>
 </html>
