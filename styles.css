@@ -1,0 +1,644 @@
+/* ==========================================
+   UW–Madison Cyber Escape Room - Styles
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --uw-red: #c5050c;
+    --uw-white: #ffffff;
+    --uw-black: #000000;
+    --lava-orange: #ff6b35;
+    --lava-red: #d41e3a;
+    --lava-dark: #8b0000;
+    --accent-yellow: #ffed4e;
+    --dark-gray: #333333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    background: #000;
+}
+
+/* ==========================================
+   Lava Background & Animations
+   ========================================== */
+
+.lava-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
+    z-index: -2;
+}
+
+@keyframes lavaFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.lava-flow {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 200px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        #ff4500 25%, 
+        #ff6b35 50%, 
+        #ff4500 75%, 
+        transparent 100%);
+    background-size: 200% 100%;
+    animation: lavaFlow 8s ease-in-out infinite;
+    filter: blur(20px);
+    opacity: 0.7;
+    z-index: -1;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+    }
+}
+
+.lava-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.lava-particles::before,
+.lava-particles::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, #ffaa00 0%, #ff6b35 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 20px #ff4500;
+    animation: particleFloat 4s infinite;
+    bottom: 0;
+}
+
+.lava-particles::before {
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.lava-particles::after {
+    left: 80%;
+    animation-delay: 2s;
+}
+
+@keyframes lavaRise {
+    0% {
+        height: 0;
+    }
+    100% {
+        height: 100%;
+    }
+}
+
+.lava-rise {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: linear-gradient(to top, 
+        rgba(255, 69, 0, 0.8) 0%, 
+        rgba(255, 107, 53, 0.6) 50%, 
+        transparent 100%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* ==========================================
+   Header - UW–Madison Branding
+   ========================================== */
+
+.header {
+    background: linear-gradient(135deg, var(--uw-red) 0%, #8b0000 100%);
+    padding: 20px;
+    color: var(--uw-white);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border-bottom: 3px solid var(--accent-yellow);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.uw-logo {
+    text-align: left;
+}
+
+.uw-logo h1 {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+}
+
+.uw-logo p {
+    font-size: 14px;
+    opacity: 0.95;
+    letter-spacing: 1px;
+}
+
+.timer-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 25px;
+    border-radius: 10px;
+    border: 2px solid var(--accent-yellow);
+    backdrop-filter: blur(10px);
+}
+
+.timer-label {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timer {
+    font-size: 32px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 10px var(--lava-orange);
+}
+
+/* ==========================================
+   Main Container & Screens
+   ========================================== */
+
+.main-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    height: calc(100vh - 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.screen {
+    display: none;
+    width: 100%;
+    opacity: 0;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.screen.active {
+    display: block;
+    opacity: 1;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   Welcome Screen
+   ========================================== */
+
+.welcome-content {
+    background: rgba(30, 30, 30, 0.95);
+    padding: 60px 40px;
+    border-radius: 15px;
+    border: 3px solid var(--uw-red);
+    text-align: center;
+    color: var(--uw-white);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 
+                0 0 30px rgba(255, 69, 0, 0.3);
+}
+
+.welcome-content h2 {
+    font-size: 48px;
+    margin-bottom: 30px;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 20px var(--lava-orange);
+}
+
+.welcome-content p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* ==========================================
+   Game Screen
+   ========================================== */
+
+.game-content {
+    width: 100%;
+}
+
+.progress-section {
+    margin-bottom: 30px;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: var(--accent-yellow);
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--uw-red);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lava-orange) 0%, var(--accent-yellow) 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px var(--lava-orange);
+}
+
+.question-card {
+    background: rgba(30, 30, 30, 0.95);
+    padding: 40px;
+    border-radius: 15px;
+    border: 3px solid var(--uw-red);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 
+                0 0 30px rgba(255, 69, 0, 0.3);
+    color: var(--uw-white);
+}
+
+.question-number {
+    font-size: 14px;
+    color: var(--accent-yellow);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.question-card h3 {
+    font-size: 28px;
+    margin-bottom: 30px;
+    line-height: 1.4;
+    color: var(--uw-white);
+}
+
+/* ==========================================
+   Tip Section
+   ========================================== */
+
+.tip-section {
+    margin-bottom: 30px;
+}
+
+.btn-tip {
+    background: rgba(255, 173, 78, 0.2);
+    border: 2px solid #ffad4e;
+    color: var(--accent-yellow);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.btn-tip:hover {
+    background: rgba(255, 173, 78, 0.4);
+    box-shadow: 0 0 15px #ffad4e;
+}
+
+.tip-box {
+    background: rgba(255, 173, 78, 0.1);
+    border-left: 4px solid var(--accent-yellow);
+    padding: 15px 20px;
+    margin-top: 15px;
+    border-radius: 5px;
+    color: #ffe4b5;
+    font-size: 14px;
+    line-height: 1.6;
+    animation: slideDown 0.3s ease;
+}
+
+.tip-box.hidden {
+    display: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   Options Container
+   ========================================== */
+
+.options-container {
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.option {
+    background: rgba(60, 60, 60, 0.8);
+    border: 2px solid rgba(197, 5, 12, 0.5);
+    padding: 15px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--uw-white);
+    font-size: 16px;
+    text-align: left;
+}
+
+.option:hover:not(.disabled) {
+    background: rgba(60, 60, 60, 1);
+    border-color: var(--uw-red);
+    transform: translateX(10px);
+    box-shadow: 0 0 15px rgba(197, 5, 12, 0.5);
+}
+
+.option.selected {
+    background: rgba(197, 5, 12, 0.3);
+    border-color: var(--uw-red);
+    box-shadow: 0 0 20px rgba(197, 5, 12, 0.6);
+}
+
+.option.correct {
+    background: rgba(34, 139, 34, 0.3);
+    border-color: #22dd22;
+    box-shadow: 0 0 20px rgba(34, 222, 34, 0.5);
+}
+
+.option.incorrect {
+    background: rgba(220, 20, 60, 0.3);
+    border-color: #ff4444;
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+}
+
+.option.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ==========================================
+   Feedback Box
+   ========================================== */
+
+.feedback-box {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    animation: slideDown 0.3s ease;
+}
+
+.feedback-box.hidden {
+    display: none;
+}
+
+.feedback-box.correct {
+    background: rgba(34, 139, 34, 0.2);
+    border: 2px solid #22dd22;
+    color: #90ee90;
+}
+
+.feedback-box.incorrect {
+    background: rgba(220, 20, 60, 0.2);
+    border: 2px solid #ff4444;
+    color: #ff9999;
+}
+
+/* ==========================================
+   Buttons
+   ========================================== */
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--uw-red) 0%, var(--lava-red) 100%);
+    color: var(--uw-white);
+    border: 2px solid var(--accent-yellow);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 20px rgba(197, 5, 12, 0.8);
+}
+
+.btn-secondary {
+    background: rgba(100, 100, 100, 0.7);
+    color: var(--uw-white);
+    border: 2px solid rgba(197, 5, 12, 0.5);
+}
+
+.btn-secondary:hover {
+    background: rgba(100, 100, 100, 0.9);
+    border-color: var(--uw-red);
+}
+
+/* ==========================================
+   Completion Screen
+   ========================================== */
+
+.completion-content {
+    background: rgba(30, 30, 30, 0.95);
+    padding: 60px 40px;
+    border-radius: 15px;
+    border: 3px solid var(--uw-red);
+    text-align: center;
+    color: var(--uw-white);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 
+                0 0 30px rgba(255, 69, 0, 0.3);
+}
+
+.completion-content h2 {
+    font-size: 48px;
+    margin-bottom: 40px;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 20px var(--lava-orange);
+}
+
+.stats-box {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 10px;
+    border: 2px solid var(--uw-red);
+    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 36px;
+    color: var(--accent-yellow);
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--lava-orange);
+}
+
+.completion-message {
+    font-size: 18px;
+    margin-bottom: 30px;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* ==========================================
+   Responsive Design
+   ========================================== */
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .question-card {
+        padding: 30px 20px;
+    }
+
+    .question-card h3 {
+        font-size: 22px;
+    }
+
+    .welcome-content h2 {
+        font-size: 36px;
+    }
+
+    .welcome-content {
+        padding: 40px 20px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .stats-box {
+        grid-template-columns: 1fr;
+    }
+
+    .timer {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .uw-logo h1 {
+        font-size: 20px;
+    }
+
+    .timer-container {
+        padding: 10px 15px;
+    }
+
+    .question-card h3 {
+        font-size: 18px;
+    }
+
+    .completion-content h2 {
+        font-size: 32px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+    }
+}
